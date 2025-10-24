@@ -1,26 +1,12 @@
-From 04d84cccbfb0fa324f960942359c3edd92f89071 Mon Sep 17 00:00:00 2001
+From f0c747be0deca64801fe01eebfa78ce5b3d803fe Mon Sep 17 00:00:00 2001
 From: Rumen <rumenmitov@protonmail.com>
-Date: Fri, 24 Oct 2025 16:00:58 +0200
-Subject: [PATCH] App Icons in the dwl bar!
+Date: Fri, 24 Oct 2025 17:14:02 +0200
+Subject: [PATCH] fix: appicons displaying on all monitors
 
-Adds support for app icons that can replace the tag indicator and tag name.
-This feature is configurable through an additional option in rules.
-
-Icons should work out of the box.
-Emojis require a special font like Noto Color Emoji.
-
-When one or more app icons are present in a tag, the tag name will be enclosed
-by the outer separators (`outer_separator_beg` and `outer_separator_end`).
-Additionally, the icons within the tag will be separated by inner_separator.
-
-Each tag can display a maximum of `truncate_icons_after` icons, after which the
-`truncate_symbol` will be shown.
-
-Inspired by XMonad's DynamicIcons.
 ---
  config.def.h |  14 +++--
- dwl.c        | 141 +++++++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 148 insertions(+), 7 deletions(-)
+ dwl.c        | 142 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 149 insertions(+), 7 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index 1b7472d..a48b78d 100644
@@ -51,7 +37,7 @@ index 1b7472d..a48b78d 100644
  
  /* layout(s) */
 diff --git a/dwl.c b/dwl.c
-index bf340d8..33a76d9 100644
+index bf340d8..ba6388a 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -143,6 +143,7 @@ typedef struct {
@@ -247,7 +233,7 @@ index bf340d8..33a76d9 100644
  void
  drawbar(Monitor *m)
  {
-@@ -1588,7 +1709,19 @@ drawbar(Monitor *m)
+@@ -1588,9 +1709,22 @@ drawbar(Monitor *m)
  		drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
  	}
  
@@ -260,14 +246,17 @@ index bf340d8..33a76d9 100644
 +  }
 +
  	wl_list_for_each(c, &clients, link) {
+ 		if (c->mon != m)
+ 			continue;
++
 +    if (c->appicon && strlen(c->appicon) > 0) {
 +      applyappicon(m->tag_icons, icons_per_tag, c);
 +    }
 +
- 		if (c->mon != m)
- 			continue;
  		occ |= c->tags;
-@@ -1598,10 +1731,10 @@ drawbar(Monitor *m)
+ 		if (c->isurgent)
+ 			urg |= c->tags;
+@@ -1598,10 +1732,10 @@ drawbar(Monitor *m)
  	x = 0;
  	c = focustop(m);
  	for (i = 0; i < LENGTH(tags); i++) {

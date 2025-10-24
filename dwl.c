@@ -1724,6 +1724,11 @@ drawbar(Monitor *m)
 
 		if (c->mon != m)
 			continue;
+
+    if (c->appicon && strlen(c->appicon) > 0) {
+      applyappicon(m->tag_icons, icons_per_tag, c);
+    }
+
 		occ |= c->tags;
 		if (c->isurgent)
 			urg |= c->tags;
